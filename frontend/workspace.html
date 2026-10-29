@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Map Workspace — MindMapAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="workspace-body">
+
+    <!-- ── Navbar ─────────────────────────────────────── -->
+    <nav class="navbar navbar-light border-bottom py-2">
+        <div class="container-fluid px-3">
+            <a class="navbar-brand fw-600 small" href="index.html">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3366CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1" style="vertical-align:-3px">
+                    <circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="5"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="7.05" y2="7.05"/>
+                    <line x1="16.95" y1="16.95" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="5" y2="12"/>
+                    <line x1="19" y1="12" x2="23" y2="12"/>
+                </svg>
+                MindMapAI
+            </a>
+            <span id="projectTitleNav" class="navbar-text text-secondary small"></span>
+            <div class="d-flex gap-2">
+                <button id="saveBtn" class="btn btn-outline-primary btn-sm px-3">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1" style="vertical-align:-2px">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save
+                </button>
+                <button id="exportBtn" class="btn btn-outline-secondary btn-sm px-3">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1" style="vertical-align:-2px">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export PNG
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Main Layout ────────────────────────────────── -->
+    <div class="workspace-layout">
+
+        <!-- Mind Map Canvas -->
+        <div id="canvasContainer" class="canvas-container">
+            <!-- Toolbar -->
+            <div class="canvas-toolbar">
+                <button id="zoomInBtn" class="btn btn-sm btn-outline-secondary" title="Zoom In">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button id="zoomOutBtn" class="btn btn-sm btn-outline-secondary" title="Zoom Out">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button id="fitBtn" class="btn btn-sm btn-outline-secondary" title="Fit to Screen">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+                <span class="toolbar-divider"></span>
+                <button id="collapseAllBtn" class="btn btn-sm btn-outline-secondary" title="Collapse All">Collapse</button>
+                <button id="expandAllBtn" class="btn btn-sm btn-outline-secondary" title="Expand All">Expand</button>
+            </div>
+
+            <!-- Loading state -->
+            <div id="canvasLoading" class="canvas-state">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="text-secondary">Loading mind map…</p>
+            </div>
+
+            <!-- Error state -->
+            <div id="canvasError" class="canvas-state d-none">
+                <p class="text-danger mb-2" id="errorMessage">Something went wrong.</p>
+                <a href="index.html" class="btn btn-outline-primary btn-sm">Back to Dashboard</a>
+            </div>
+
+            <!-- SVG canvas for D3 -->
+            <svg id="mindmapSvg" class="d-none"></svg>
+        </div>
+
+        <!-- ── Side Panel ─────────────────────────────── -->
+        <aside id="sidePanel" class="side-panel">
+            <!-- Empty state -->
+            <div id="panelEmpty" class="panel-empty">
+                <p class="text-secondary small">Click a node to view details</p>
+            </div>
+
+            <!-- Node details -->
+            <div id="panelContent" class="d-none">
+                <div class="mb-3">
+                    <label class="form-label small fw-500 text-secondary">Title</label>
+                    <input type="text" id="nodeTitle" class="form-control form-control-sm">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-500 text-secondary">Description</label>
+                    <textarea id="nodeDescription" class="form-control form-control-sm" rows="4"></textarea>
+                </div>
+                <div class="mb-3" id="pageRefGroup">
+                    <label class="form-label small fw-500 text-secondary">Source Page</label>
+                    <span id="nodePageRef" class="badge bg-light text-dark border"></span>
+                </div>
+
+                <div class="d-flex flex-column gap-2 mt-4">
+                    <button id="updateNodeBtn" class="btn btn-primary btn-sm">Update Node</button>
+                    <button id="addChildBtn" class="btn btn-outline-primary btn-sm">Add Child Node</button>
+                    <button id="regenerateBtn" class="btn btn-outline-secondary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1" style="vertical-align:-2px">
+                            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        Regenerate Branch
+                    </button>
+                    <button id="deleteNodeBtn" class="btn btn-outline-danger btn-sm">Delete Node</button>
+                </div>
+
+                <!-- Regeneration loading -->
+                <div id="regenLoading" class="text-center py-3 d-none">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    <span class="small text-secondary">Regenerating with AI…</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Save status toast -->
+    <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="statusToast" class="toast align-items-center border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/mindmap.js"></script>
+    <script src="js/workspace.js"></script>
+</body>
+</html>
